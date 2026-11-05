@@ -265,6 +265,7 @@
 }
 @media(max-width:360px){.core-copy h1{font-size:33px}.hero-actions-row{gap:12px}.hero-actions-row>span{font-size:9px}.core-stats strong{font-size:30px}.core-view .sector-rail button{font-size:10px}}
 @media(prefers-reduced-motion:reduce){
+ .blueprint-orbit{transform:translate(-50%,-50%) rotate(-12deg)!important}
  .core-chapter{height:auto!important;min-height:0!important}
  .core-hero .core-sticky{position:relative!important}
  .core-copy,.core-line>span{opacity:1!important;transform:none!important;will-change:auto!important}

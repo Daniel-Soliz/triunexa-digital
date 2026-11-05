@@ -137,6 +137,11 @@ export default function CoreCanvas({rootRef}:{rootRef:RefObject<HTMLDivElement|n
   }) as EventListener);
   on(root,'close',()=>lenis?.start(),{capture:true});on(root,'cancel',()=>lenis?.start(),{capture:true});
   const observer=new ResizeObserver(()=>measure());observer.observe(root);
+  // React removes dialogs after the click bubbles; synchronize scrolling after that mutation.
+  const dialogObserver=new MutationObserver(()=>{
+   if(root.querySelector('dialog[open]'))lenis?.stop();else lenis?.start();
+  });
+  dialogObserver.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
   const mutation=new MutationObserver(()=>measure());
   const grid=root.querySelector('.leads-grid');if(grid)mutation.observe(grid,{childList:true});
   void fetch(import.meta.env.BASE_URL+CORE_CONFIG.manifest,{signal:abort.signal,cache:'no-cache'})
@@ -149,7 +154,7 @@ export default function CoreCanvas({rootRef}:{rootRef:RefObject<HTMLDivElement|n
   const loading=setTimeout(()=>{if(alive)setReady(true);},700);
   return ()=>{
    alive=false;clearTimeout(loading);cancelAnimationFrame(raf);abort.abort();cache?.dispose();lenis?.destroy();
-   observer.disconnect();mutation.disconnect();events.forEach(off=>off());
+   observer.disconnect();dialogObserver.disconnect();mutation.disconnect();events.forEach(off=>off());
    panels.forEach(panel=>{panel.style.removeProperty('opacity');panel.style.removeProperty('transform');panel.style.removeProperty('--line-reveal');});
    ['cinema','motion','coreRenderer','coreFrame','coreChapter','activeScene'].forEach(key=>delete root.dataset[key]);
   };

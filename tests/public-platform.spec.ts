@@ -51,7 +51,7 @@ test('categorias preservam busca e exibem vazio sem empresas fictícias',async({
  await page.goto('/');
  await page.getByRole('button',{name:/^Advocacia/}).click();
  await expect(page.getByText('Nenhum resultado por aqui')).toBeVisible();
- await page.getByRole('button',{name:'Limpar filtros'}).click();
+ await page.getByRole('button',{name:'Limpar filtros',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Empresa de teste'})).toBeVisible();
 });
 test('mobile e movimento reduzido mantêm o catálogo utilizável sem CDN',async({page})=>{

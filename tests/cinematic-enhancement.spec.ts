@@ -110,3 +110,21 @@ test('futuristic layout stays readable at 390px and opens the contact dossier',a
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('mobile-dossier.png')});
 });
+
+test('closing a dossier with its button restores smooth anchor navigation',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('link',{name:'Explorar empresas',exact:true}).click();
+ await page.getByRole('button',{name:'Ver catálogo de informações',exact:true}).click();
+ await page.getByRole('button',{name:'Fechar informações da empresa',exact:true}).click();
+ await page.getByRole('link',{name:'O desenvolvedor',exact:true}).click();
+ await expect.poll(()=>page.locator('#criador').evaluate(el=>Math.abs(el.getBoundingClientRect().top))).toBeLessThan(600);
+});
+
+test('reduced motion freezes the orbital background throughout scrolling',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ const orbit=page.locator('.blueprint-orbit');
+ const before=await orbit.evaluate(el=>getComputedStyle(el).transform);
+ await page.getByRole('link',{name:'Explorar empresas',exact:true}).click();
+ await expect(orbit).toHaveCSS('transform',before);
+});
