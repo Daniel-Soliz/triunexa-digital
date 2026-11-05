@@ -21,3 +21,8 @@ The requested research target is 100 new verified companies per sector per day. 
 
 ## Verification
 CI: TypeScript, Vite build, JavaScript syntax, original public tests and dossier/mobile/reduced-motion/PWA tests. Verify the public migration through anon privileges. PR must pass before publishing.
+
+## Research at delivery
+10 companies were added after checking official sites. Catalogue total: 86, including legacy records. Curated emails: 8. Named professional contacts: 5. Instagram links: 18 (includes previously supplied records). No claim that all 86 records have every channel or that 100 per sector has been met. Daily morning research task enabled for America/Sao_Paulo; the first scheduled run is November 6, 2026. Initial source evidence is retained in each dossier. Existing paused prospecting tasks were not resumed or duplicated.
+
+References: https://gsap.com/docs/v3/Plugins/ScrollTrigger/ ; https://github.com/darkroomengineering/lenis ; https://threejs.org/docs/pages/WebGLRenderer ; https://threejs.org/docs/pages/InstancedMesh.html .

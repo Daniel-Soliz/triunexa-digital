@@ -12,7 +12,10 @@ function script(url) {
  if (scripts.has(url)) return scripts.get(url);
  const task = new Promise((resolve,reject)=>{
   const el=document.createElement('script'); el.src=url; el.async=true;
-  el.onload=resolve; el.onerror=reject; document.head.append(el);
+  const timeout=setTimeout(()=>{el.remove();reject(new Error('Animation CDN timed out'));},5000);
+  el.onload=()=>{clearTimeout(timeout);resolve();};
+  el.onerror=()=>{clearTimeout(timeout);reject(new Error('Animation CDN unavailable'));};
+  document.head.append(el);
  });
  scripts.set(url,task);return task;
 }
@@ -47,7 +50,7 @@ export async function initCinema(root) {
    pin=ScrollTrigger.create({trigger:hero,start:'top top',end:()=>'+='+Math.round(innerHeight*.65),pin:true,pinSpacing:true,anticipatePin:1,invalidateOnRefresh:true});
   }
   if(!motionReduced&&window.Lenis){
-   lenis=new window.Lenis({duration:1.12,smoothWheel:true,syncTouch:false,anchors:true,
+   lenis=new window.Lenis({duration:1.12,smoothWheel:true,syncTouch:false,anchors:false,
     prevent:node=>Boolean(node.closest('dialog,[data-lenis-prevent]'))});
    lenis.on('scroll',ScrollTrigger.update);
   }
@@ -110,7 +113,10 @@ export async function initCinema(root) {
     card.style.setProperty('--shine-x',(x*100)+'%');card.style.setProperty('--shine-y',(y*100)+'%');}
   },{passive:true});
   on(root,'pointerout',ev=>{const card=ev.target.closest('.lead-card');if(card&&!card.contains(ev.relatedTarget)){card.style.setProperty('--tilt-x','0deg');card.style.setProperty('--tilt-y','0deg');}});
-  on(root,'click',()=>{const open=Boolean(root.querySelector('dialog[open]'));if(open)lenis?.stop();else lenis?.start();});
+  on(root,'click',event=>{
+   const link=event.target.closest('a[href="#empresas"],a[href="#criador"]');
+   if(link&&lenis){const hash=link.getAttribute('href'),destination=root.querySelector(hash);if(destination){event.preventDefault();history.replaceState(null,'',hash);lenis.scrollTo(destination,{offset:-100});}}
+   const open=Boolean(root.querySelector('dialog[open]'));if(open)lenis?.stop();else lenis?.start();});
   on(root,'close',()=>lenis?.start(),true);
   on(root,'cancel',()=>lenis?.start(),true);
   let drawnOnce=false;
@@ -169,10 +175,12 @@ export async function initCinema(root) {
    lines=new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:CINEMA.green,transparent:true,opacity:.18}));lines.frustumCulled=false;scene.add(lines);
    on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);drawnOnce=false;if(!raf)raf=requestAnimationFrame(render);});
    on(canvas,'webglcontextlost',ev=>{ev.preventDefault();renderer?.dispose();renderer=null;root.dataset.webgl='fallback';});
-   root.dataset.webgl='ready';
+   root.dataset.webgl='ready';if(!raf)raf=requestAnimationFrame(render);
   }catch{root.dataset.webgl='fallback';}
   finally{ready();}
  };
- void start().catch(()=>{cleanup();ready();});
+ const begin=()=>void start().catch(()=>{cleanup();ready();});
+ if(document.readyState==='complete')begin();
+ else on(window,'load',begin,{once:true});
  return cleanup;
 }
