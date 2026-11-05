@@ -4,6 +4,8 @@ export interface PublicLead {
  id: string; company: string; segment: string; city: string; state: string; neighborhood: string;
  phone: string; whatsapp: string; website: string; instagram_url: string;
  source_url: string; source_verified_at: string; company_summary: string;
+ email?: string; address?: string; contact_name?: string; contact_role?: string;
+ details_sources?: {label:string;url:string}[];
 }
 export function safeUrl(value?: string): string | undefined {
  try { const u = new URL(value || ''); return ['https:', 'http:'].includes(u.protocol) ? u.href : undefined; } catch { return undefined; }
@@ -30,4 +32,30 @@ export async function loadPublicLeads(): Promise<PublicLead[]> {
   all.push(...(data || []));
   if(!data || data.length<1000) return all;
  }
+}
+
+export const BUSINESS_SECTORS = ['Estética','Cabeleireiros','Barbearias','Advocacia','Odontologia','Academias','Pet shops','Restaurantes','Contabilidade','Oficinas'];
+export function canonicalSector(segment:string) {
+ const s=(segment||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ if(/advog|advoc|jurid/.test(s))return 'Advocacia';
+ if(/contab/.test(s))return 'Contabilidade';
+ if(/barbear/.test(s))return 'Barbearias';
+ if(/cabele|salao|beleza/.test(s))return 'Cabeleireiros';
+ if(/odonto|dent/.test(s))return 'Odontologia';
+ if(/estet|derm/.test(s))return 'Estética';
+ if(/academ|fitness|pilates/.test(s))return 'Academias';
+ if(/pet|veterin/.test(s))return 'Pet shops';
+ if(/restaur|pizza|aliment|lanch/.test(s))return 'Restaurantes';
+ if(/oficina|mecan|auto/.test(s))return 'Oficinas';
+ return segment||'Outros serviços';
+}
+export function rotateDaily(leads:PublicLead[], day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date())) {
+ const hash=(value:string)=>{let h=2166136261;for(let i=0;i<value.length;i++)h=Math.imul(h^value.charCodeAt(i),16777619);return h>>>0;};
+ // Daily rotation changes discovery order. It never pretends to be fresh research.
+ const buckets=new Map<string,PublicLead[]>();
+ for(const lead of leads){const key=canonicalSector(lead.segment);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key)!.push(lead);}
+ const groups=[...buckets.entries()].sort(([a],[b])=>hash(a+day)-hash(b+day)).map(([,rows])=>rows.sort((a,b)=>hash(a.id+day)-hash(b.id+day)));
+ const ordered:PublicLead[]=[];
+ while(groups.some(g=>g.length)){for(const group of groups){const lead=group.shift();if(lead)ordered.push(lead);}}
+ return ordered;
 }
