@@ -1,0 +1,15 @@
+import { useEffect, useRef } from 'react';
+export function useCinema(active:boolean) {
+ const ref=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  if(!active || !ref.current)return;
+  const root=ref.current;let cancelled=false,cleanup:undefined|(()=>void);
+  const loading=root.querySelector<HTMLElement>('.cinema-loading');
+  const timeout=setTimeout(()=>{if(loading)loading.hidden=true;},2000);
+  import(/* @vite-ignore */ import.meta.env.BASE_URL+'cinematic.js')
+   .then(async mod=>{if(cancelled)return;const stop=await mod.initCinema(root);if(cancelled)stop?.();else cleanup=stop;})
+   .catch(()=>{if(loading)loading.hidden=true;});
+  return ()=>{cancelled=true;clearTimeout(timeout);cleanup?.();};
+ },[active]);
+ return ref;
+}
