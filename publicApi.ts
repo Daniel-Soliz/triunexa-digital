@@ -10,8 +10,16 @@ export interface PublicLead {
 export function safeUrl(value?: string): string | undefined {
  try { const u = new URL(value || ''); return ['https:', 'http:'].includes(u.protocol) ? u.href : undefined; } catch { return undefined; }
 }
-let memoryVisitor = crypto.randomUUID();
-let memorySession = crypto.randomUUID();
+function randomVisitorId() {
+ if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
+ // Local HTTP previews do not expose randomUUID; getRandomValues remains available.
+ const bytes=crypto.getRandomValues(new Uint8Array(16));
+ bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+ return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+const memoryVisitor = randomVisitorId();
+const memorySession = randomVisitorId();
 function storedId(storage: 'localStorage' | 'sessionStorage', key: string, fallback: string) {
  try { const old = window[storage].getItem(key); if(old && /^[0-9a-f-]{36}$/i.test(old)) return old; window[storage].setItem(key,fallback); } catch { /* Storage can be blocked. */ }
  return fallback;

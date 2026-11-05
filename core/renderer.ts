@@ -5,7 +5,7 @@ export interface Pose {scale:number;explode:number;rotation:number;grid:number;t
 export function corePose(progress:number):Pose {
  const {index,local:t}=chapterForProgress(progress),s=smooth(t);
  switch(index){
-  case 0:return {scale:mix(.27,1.2,s),explode:0,rotation:mix(-.6,.8,s),grid:0,travel:0};
+  case 0:return {scale:mix(.68,1.2,s),explode:0,rotation:mix(-.6,.8,s),grid:0,travel:0};
   case 1:return {scale:mix(1.2,.98,s),explode:s,rotation:mix(.8,1.8,s),grid:0,travel:0};
   case 2:return {scale:.98,explode:1,rotation:mix(1.8,2.8,s),grid:smooth(t/.2)*(1-smooth((t-.84)/.16)),travel:0};
   case 3:return {scale:mix(.98,2.8,s),explode:mix(1,.7,s),rotation:mix(2.8,3.7,s),grid:0,travel:mix(0,2.5,s)};
@@ -27,7 +27,7 @@ function rotate(v:V,angle:number,tilt:number):V {
 }
 export function drawCore(ctx:CanvasRenderingContext2D,w:number,h:number,progress:number,mouse:Anchor,mobile:boolean,anchors:Anchor[]=[]){
  const pose=corePose(progress),radius=Math.min(w*.38,h*.38)*pose.scale;
- const cx=w*(mobile ? 0.5 : 0.56)+mouse.x*12,cy=h*(mobile ? 0.39 : 0.46)+mouse.y*10;
+ const cx=w*(mobile ? 0.5 : 0.76)+mouse.x*12,cy=h*(mobile ? 0.28 : 0.48)+mouse.y*10;
  const tilt=.12+Math.sin(progress*Math.PI*3)*.3;
  const project=(v:V)=>{const d=4/Math.max(.65,4-v.z-pose.travel);return{x:cx+v.x*radius*d,y:cy+v.y*radius*d,z:v.z};};
  ctx.clearRect(0,0,w,h);

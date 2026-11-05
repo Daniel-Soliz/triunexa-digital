@@ -64,19 +64,23 @@ export default function CoreCanvas({rootRef}:{rootRef:RefObject<HTMLDivElement|n
     const i=SCENES.indexOf(panel.dataset.coreCopy as typeof SCENES[number]);
     if(reduce.matches){panel.style.opacity='1';panel.style.transform='none';panel.style.setProperty('--line-reveal','1');return;}
     const local=clamp(progress*SCENES.length-i);
-    const entrance=i===0?1:smooth(local/.12);
-    const exit=i===4?1:1-smooth((local-.84)/.16);
+    const scene=panel.closest<HTMLElement>('[data-core-scene]');
+    const top=scene?.getBoundingClientRect().top??0;
+    const entrance=i===0?1:smooth((height*.95-top)/(height*.25));
+    const exit=i===0?1-smooth((local-.90)/.10):1;
     panel.style.opacity=String(entrance*exit);
-    panel.style.transform='translate3d(0,'+((1-entrance)*28-exit*local*18)+'px,0)';
+    panel.style.transform='translate3d(0,'+((1-entrance)*24)+'px,0)';
     panel.style.setProperty('--line-reveal',String(entrance));
    });
    root!.querySelectorAll<HTMLElement>('[data-core-count]').forEach(el=>{
     const goal=Number(el.dataset.coreCount)||0;
-    const amount=reduce.matches?1:smooth(clamp((progress*5-3)/.45));
+    const statsTop=el.closest<HTMLElement>('[data-core-scene]')?.getBoundingClientRect().top??0;
+    const amount=reduce.matches?1:smooth((height*.9-statsTop)/(height*.45));
     const value=Math.round(goal*amount).toLocaleString('pt-BR');
     if(el.textContent!==value)el.textContent=value;
    });
-   if(progressBar)progressBar.style.transform='scaleX('+progress+')';
+   if(progressBar)progressBar.style.transform='scaleX('+clamp(scrollY/Math.max(1,document.documentElement.scrollHeight-height))+')';
+   root!.style.setProperty('--scene-progress',String(progress));
   }
   function tick(time:number){
    raf=0;if(!alive||document.hidden)return;

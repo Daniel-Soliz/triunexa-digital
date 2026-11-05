@@ -1,4 +1,4 @@
-const CACHE_NAME = 'truinexa-pwa-v20-emerald-core';
+const CACHE_NAME = 'truinexa-pwa-v21-emerald-blueprint';
 const APP_ROOT = self.registration.scope;
 
 const shellAssets = [

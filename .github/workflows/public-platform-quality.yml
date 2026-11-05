@@ -1,7 +1,7 @@
 name: Public platform quality
 on:
   push:
-    branches: [main, codex/emerald-scroll-sequence]
+    branches: [main, codex/emerald-scroll-sequence, codex/futuristic-directory]
   pull_request:
     branches: [main]
 permissions:

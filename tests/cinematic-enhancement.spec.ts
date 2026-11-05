@@ -80,3 +80,33 @@ test('valid WebP sequence draws frames with a bounded lazy window',async({page})
  await expect(page.locator('.public-platform')).toHaveAttribute('data-core-renderer','frames');
  expect(requests).toBeLessThanOrEqual(5);
 });
+
+test('hero search reaches the catalogue, preserves category filters and clears the query',async({page})=>{
+ await page.goto('/');
+ await page.getByLabel('O que você procura?').fill('Cinema');
+ await page.getByRole('button',{name:'Pesquisar no catálogo'}).click();
+ await expect(page).toHaveURL(/#empresas$/);
+ await expect(page.getByLabel('Buscar empresas',{exact:true})).toHaveValue('Cinema');
+ await expect(page.getByRole('button',{name:'Ver informações de Empresa Cinema',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:/^Advocacia/}).click();
+ await expect(page.getByText('Nenhum resultado por aqui')).toBeVisible();
+ await page.getByRole('button',{name:'Limpar filtros ×',exact:true}).click();
+ await expect(page.getByLabel('Buscar empresas',{exact:true})).toHaveValue('');
+ await expect(page.getByRole('button',{name:'Ver informações de Empresa Cinema',exact:true})).toBeVisible();
+});
+
+test('futuristic layout stays readable at 390px and opens the contact dossier',async({page},testInfo)=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/');
+ await expect(page.locator('.public-platform')).toHaveAttribute('data-core-renderer','procedural');
+ await expect(page.getByRole('heading',{level:1})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('mobile-hero.png')});
+ await page.getByRole('link',{name:'Explorar empresas',exact:true}).click();
+ await expect(page.getByLabel('Buscar empresas',{exact:true})).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('mobile-catalogue.png')});
+ await page.getByRole('button',{name:'Ver catálogo de informações',exact:true}).click();
+ await expect(page.getByRole('dialog',{name:'Empresa Cinema'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('mobile-dossier.png')});
+});
