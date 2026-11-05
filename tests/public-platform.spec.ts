@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   // Catalogue behavior must survive unavailable animation CDNs.
+  page.on('pageerror', error => { throw error; });
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.route('**/rest/v1/truinexa_public_leads*', route => route.fulfill({ json: [{id:'1',company:'Empresa de teste',segment:'Design',city:'São Paulo',state:'SP',neighborhood:'Centro',phone:'11999999999',whatsapp:'11999999999',website:'javascript:alert(1)',instagram_url:'https://instagram.com/example',source_url:'https://example.com',source_verified_at:'2026-11-05',company_summary:'Contato comercial público'}] }));
   await page.route('**/rest/v1/rpc/truinexa_public_heartbeat', route => route.fulfill({ json: null }));

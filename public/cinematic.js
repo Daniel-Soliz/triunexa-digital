@@ -1,5 +1,5 @@
 /* Progressive enhancement: content and navigation never depend on CDN/WebGL. */
-export const CINEMA = {
+const CINEMA = {
  nodes: 84, mobileNodes: 30, cameraSpeed: 1, pixelRatio: 2,
  green: 0x88a887, accent: 0xd9cc9d, fog: 0x101e18,
  gsap: 'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js',
@@ -19,7 +19,7 @@ function script(url) {
  });
  scripts.set(url,task);return task;
 }
-export async function initCinema(root) {
+async function initCinema(root) {
  let disposed=false, cleanups=[], renderer, scene, camera, lenis, master, pin, resizeObserver, observer, raf=0, context;
  let gsap, ScrollTrigger, THREE, nodes, lines, positions, dummy, points=[], cardRects=[], gridCards=[];
  let state={journey:0}, target={x:0,y:0}, cursor={x:innerWidth/2,y:innerHeight/2}, count=0, startTime=performance.now();
@@ -184,3 +184,5 @@ export async function initCinema(root) {
  else on(window,'load',begin,{once:true});
  return cleanup;
 }
+
+window.TriunexaCinema = { initCinema, config: CINEMA };
