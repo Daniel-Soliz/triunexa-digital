@@ -101,9 +101,11 @@ test('futuristic layout stays readable at 390px and opens the contact dossier',a
  await expect(page.locator('.public-platform')).toHaveAttribute('data-core-renderer','procedural');
  await expect(page.getByRole('heading',{level:1})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await expect(page.locator('.core-loader')).toHaveCount(0);
  await page.screenshot({path:testInfo.outputPath('mobile-hero.png')});
  await page.getByRole('link',{name:'Explorar empresas',exact:true}).click();
  await expect(page.getByLabel('Buscar empresas',{exact:true})).toBeVisible();
+ await expect.poll(()=>page.locator('#empresas').evaluate(el=>Math.abs(el.getBoundingClientRect().top-90))).toBeLessThan(12);
  await page.screenshot({path:testInfo.outputPath('mobile-catalogue.png')});
  await page.getByRole('button',{name:'Ver catálogo de informações',exact:true}).click();
  await expect(page.getByRole('dialog',{name:'Empresa Cinema'})).toBeVisible();

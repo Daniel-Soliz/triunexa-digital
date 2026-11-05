@@ -28,7 +28,7 @@ export default function CoreCanvas({rootRef}:{rootRef:RefObject<HTMLDivElement|n
   if(!root||!canvas)return;
   const ctx=canvas.getContext('2d',{alpha:true});
   if(!ctx){setReady(true);root.dataset.coreRenderer='gradient';return;}
-  let alive=true,raf=0,width=innerWidth,height=innerHeight,dirty=true,lastFrame=-1,lastProgress=-1;
+  let alive=true,raf=0,width=innerWidth,height=innerHeight,dirty=true,lastFrame=-1,lastProgress=-1,lastY=-1;
   let bounds:ChapterBounds[]=[],anchors:Anchor[]=[],lenis:SmoothScroll|undefined,cache:FrameCache|undefined;
   let manifest=DEFAULT_MANIFEST;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)'),pointerFine=matchMedia('(pointer:fine)');
@@ -88,7 +88,7 @@ export default function CoreCanvas({rootRef}:{rootRef:RefObject<HTMLDivElement|n
    const progress=progressForScroll(scrollY,bounds,height);
    const visualProgress=reduce.matches ? 0.14 :clamp(progress*CORE_CONFIG.motionScale);
    const index=frameForProgress(visualProgress,manifest.enabled?manifest.count:CORE_CONFIG.frameCount);
-   if(progress!==lastProgress){updateText(progress);lastProgress=progress;}
+   if(progress!==lastProgress||scrollY!==lastY){updateText(progress);lastProgress=progress;lastY=scrollY;}
    if(index!==lastFrame||dirty){
     const frame=manifest.enabled?cache?.get(index):undefined;
     if(manifest.enabled)cache?.request(index);
