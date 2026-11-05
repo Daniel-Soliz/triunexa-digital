@@ -37,10 +37,10 @@
 
     <form id="form">
       <label for="password">Nova senha</label>
-      <input id="password" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required />
+      <input id="password" type="password" minlength="12" autocomplete="new-password" placeholder="Mínimo de 12 caracteres" required />
 
       <label for="confirm">Confirmar nova senha</label>
-      <input id="confirm" type="password" minlength="8" autocomplete="new-password" placeholder="Digite novamente" required />
+      <input id="confirm" type="password" minlength="12" autocomplete="new-password" placeholder="Digite novamente" required />
 
       <button id="submit" type="submit">Salvar nova senha</button>
     </form>
@@ -108,8 +108,8 @@
       errorBox.style.display = 'none';
       successBox.style.display = 'none';
 
-      if (password.value.length < 8) {
-        showError('Use uma senha com pelo menos 8 caracteres.');
+      if (password.value.length < 12) {
+        showError('Use uma senha com pelo menos 12 caracteres.');
         return;
       }
       if (password.value !== confirm.value) {

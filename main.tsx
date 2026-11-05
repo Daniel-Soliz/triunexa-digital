@@ -1,6 +1,6 @@
 import { Component, StrictMode, type ErrorInfo, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
+import App from './PublicPlatform.tsx';
 import './index.css';
 
 class CRMErrorBoundary extends Component<

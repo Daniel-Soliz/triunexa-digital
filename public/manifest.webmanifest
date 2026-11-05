@@ -1,16 +1,19 @@
 {
-  "name": "TRUINEXA DIGITAL — CRM Comercial",
+  "name": "TRIUNEXA DIGITAL — Comunidade aberta",
   "short_name": "TRUINEXA",
-  "description": "CRM comercial da TRUINEXA DIGITAL para oportunidades, carteira, atendimento e vendas.",
+  "description": "Conexões comerciais gratuitas. Desenvolvido por Daniel Soliz.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8fafc",
-  "theme_color": "#0f172a",
+  "theme_color": "#284d35",
   "orientation": "any",
   "lang": "pt-BR",
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "./icons/truinexa-192.png",

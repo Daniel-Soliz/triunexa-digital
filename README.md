@@ -1,45 +1,37 @@
-# TRUINEXA DIGITAL — CRM Comercial
+# TRIUNEXA DIGITAL — Comunidade aberta
 
-CRM interno da TRUINEXA DIGITAL para prospecção, captura de oportunidades, carteira individual, funil Kanban, atendimento, agenda, serviços, projetos e relatórios.
+Catálogo público gratuito de empresas e contatos comerciais com fonte pública e data de validação. Sem cadastro e sem carteira. Desenvolvido por **Daniel Soliz**.
 
-## Arquitetura oficial
+- Instagram profissional: https://www.instagram.com/dsdigital.tech/
+- Instagram do desenvolvedor: https://www.instagram.com/danielsoliz.ds/
+- Plataforma: https://daniel-soliz.github.io/triunexa-digital/
+- ADM: https://daniel-soliz.github.io/triunexa-digital/#adm
 
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-- Banco/Auth/Realtime: Supabase
-- Hospedagem: GitHub Pages via GitHub Actions
-- Distribuição de leads: modo **capture** — oportunidades entram sem responsável e precisam ser assumidas antes do contato
-- Prospecção: somente dados comerciais públicos validados; a plataforma aceita apenas celular brasileiro com WhatsApp confirmado
+## Acesso administrativo
 
-## Rodar localmente
+Exclusivo da conta já existente do titular Daniel Soliz. Não há cadastro público de administradores. Use o e-mail administrativo e sua senha do Supabase Auth; para definir ou recuperar a senha, informe o e-mail e clique em **Definir ou recuperar minha senha**. O link chega ao e-mail do titular. Nenhuma senha administrativa está no código. A autorização é validada no banco, inclusive para outros administradores do CRM legado.
 
-Pré-requisito: Node.js 22+
+## Dados e métricas
+
+`truinexa_public_leads` contém apenas os campos comerciais explicitamente selecionados dos registros com `source_url` HTTP(S) e `source_verified_at`. Trigger sincroniza inclusões, alterações e remoção da validação; exclusão do lead remove a projeção. Conversas, anotações, usuários, valores e históricos continuam privados. Novos registros validados da prospecção existente entram automaticamente, mas esta alteração não agenda novas pesquisas nem inventa contatos.
+
+Feedback opcional após 20 segundos, uma solicitação por sessão. Botão permanente na área do desenvolvedor. Mensagens privadas ao titular, até 2.000 caracteres, uma por sessão. Não há envio automático a redes sociais.
+
+Visitas começam na nova versão. Recarregar a mesma aba não duplica a sessão. Visitantes únicos são estimados por identificador aleatório no navegador. Online = identificadores ativos nos últimos 2 minutos; heartbeat a cada 30 segundos apenas com página visível. Dia usa America/Sao_Paulo. A medição não identifica pessoas, não coleta IP no banco da aplicação e pode variar com armazenamento bloqueado, abas duplicadas e bots. Limite de 20 novas sessões por identificador/hora; não substitui proteção contra bots distribuídos.
+
+## Desenvolvimento e verificação
+
+Node.js 22+.
 
 ```bash
-npm install
+npm ci
 npm run dev
-```
-
-O projeto usa o Supabase da TRUINEXA. As variáveis públicas de frontend podem ser configuradas com base no arquivo `env.example`.
-
-## Validação antes do deploy
-
-```bash
-npm run build
 npm run lint
+npm run build
+npx playwright install chromium
+npx playwright test tests/public-platform.spec.ts
 ```
 
-O GitHub Actions executa essas verificações automaticamente no branch `main`.
+Configuração pública em `env.example`. A chave publishable/anon é própria para o navegador e depende de RLS. Nunca colocar chave service_role no frontend. A migração `supabase/migrations/20261105160000_public_platform.sql` foi aplicada ao projeto existente; não reaplicar manualmente. O projeto studioblack7 não é utilizado.
 
-## Segurança e dados
-
-- RLS habilitado nas tabelas do CRM
-- usuários não autenticados não possuem acesso às tabelas
-- membros comerciais veem oportunidades disponíveis e a própria carteira
-- administrador possui visão gerencial
-- celular/WhatsApp de lead automático precisa ter fonte pública e validação registrada
-- números normalizados duplicados são bloqueados no próprio banco
-- o claim de lead é atômico no banco: só o primeiro usuário consegue assumir
-- o fluxo de prospecção usa mensagem personalizada editável antes de abrir o WhatsApp
-- portfólio e apresentação comercial são configuráveis no Supabase, sem alteração de código
-
-O projeto `studioblack7` não faz parte deste CRM e não deve ser alterado por integrações da TRUINEXA.
+O código do CRM anterior permanece preservado para referência e reversão; a entrada publicada usa `PublicPlatform.tsx`. Os testes anteriores de Site Studio/WhatsApp são do CRM legado, não da nova interface pública.
