@@ -1,7 +1,7 @@
 name: Public platform quality
 on:
   push:
-    branches: [main]
+    branches: [main, codex/cinema-validation]
   pull_request:
     branches: [main]
 permissions:
