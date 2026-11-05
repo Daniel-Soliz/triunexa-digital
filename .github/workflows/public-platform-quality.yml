@@ -1,7 +1,7 @@
 name: Public platform quality
 on:
   push:
-    branches: [main, codex/cinema-validation]
+    branches: [main, codex/emerald-scroll-sequence]
   pull_request:
     branches: [main]
 permissions:

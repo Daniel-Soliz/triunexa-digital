@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "count": 180,
+  "pattern": "frame_{index}.webp",
+  "padding": 4,
+  "start": 1,
+  "fit": "cover"
+}
