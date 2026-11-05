@@ -69,3 +69,14 @@ test('broken optional WebP frames fall back to original procedural geometry',asy
  expect(requests).toBeLessThanOrEqual(5);
  await expect(page.getByRole('link',{name:'Explorar empresas'})).toBeVisible();
 });
+
+test('valid WebP sequence draws frames with a bounded lazy window',async({page})=>{
+ await page.goto('about:blank');
+ const image=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=4;canvas.height=4;const ctx=canvas.getContext('2d')!;ctx.fillStyle='#284d35';ctx.fillRect(0,0,4,4);return canvas.toDataURL('image/webp');});
+ await page.route('**/core-frames/manifest.json',r=>r.fulfill({json:{enabled:true,count:180,pattern:'frame_{index}.webp',padding:4,start:1,fit:'contain'}}));
+ let requests=0;
+ await page.route('**/core-frames/*.webp',r=>{requests++;return r.fulfill({contentType:'image/webp',body:Buffer.from(image.split(',')[1],'base64')});});
+ await page.goto('/');
+ await expect(page.locator('.public-platform')).toHaveAttribute('data-core-renderer','frames');
+ expect(requests).toBeLessThanOrEqual(5);
+});
