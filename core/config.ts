@@ -1,5 +1,5 @@
 export const CORE_CONFIG = {
- frameCount:180,
+ frameCount:720,
  dpr:2,
  mobileDpr:1.35,
  nodes:72,

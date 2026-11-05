@@ -14,8 +14,8 @@ test.beforeEach(async({page})=>{
  await page.route('**/rest/v1/rpc/truinexa_public_heartbeat',r=>r.fulfill({json:null}));
 });
 test('scroll chooses bounded frames and joins the five chapter poses continuously',()=>{
- expect(frameForProgress(-1)).toBe(0);expect(frameForProgress(1)).toBe(179);
- expect(frameForProgress(.5)).toBe(90);
+ expect(frameForProgress(-1)).toBe(0);expect(frameForProgress(1)).toBe(719);
+ expect(frameForProgress(.5)).toBe(360);
  expect(chapterForProgress(1).name).toBe('final');
  const bounds=Array.from({length:5},(_,i)=>({top:i*2600,height:2600}));
  expect(progressForScroll(1300,bounds,1000)).toBeCloseTo(.1);

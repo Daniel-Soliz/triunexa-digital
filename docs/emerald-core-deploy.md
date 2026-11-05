@@ -10,7 +10,7 @@ Esta implementação reproduz a técnica de progresso/frame/canvas com geometria
 ## Arquitetura entregue
 Mantém React + Vite e todo o catálogo existente. Nenhuma migração de banco ou mudança de autenticação é necessária.
 
-- core/config.ts: cores, 180 frames provisórios, qualidade, duração, cálculo de capítulos/progresso.
+- core/config.ts: cores, 720 amostras procedurais e configuração opcional de frames, qualidade, duração, cálculo de capítulos/progresso.
 - core/renderer.ts: núcleo esmeralda original, faces desmontáveis, nós, linhas, órbita, grade, travessia e remontagem.
 - core/CoreCanvas.tsx: canvas fixo, atualização por requestAnimationFrame, Lenis opcional, redimensionamento, texto/canvas sincronizados, limpeza ao entrar no ADM.
 - core/Scenes.tsx: cinco capítulos e textos originais.
@@ -32,7 +32,7 @@ Hero e demais capítulos: 260 alturas de viewport no desktop, 230 no celular; ca
 Não é necessário Next.js. Migrar para Next apenas para este efeito adicionaria uma mudança de arquitetura sem benefício para o catálogo estático atual.
 
 ## Gerar frames originais com IA
-Os frames reais não foram gerados. A versão entregue desenha o núcleo por código. O número 180 é provisório e ajustável.
+Os frames reais não foram gerados. A versão entregue desenha o núcleo por código. A geometria usa 720 amostras virtuais para suavizar a sequência longa. O manifest de imagens sugere 180 WebPs provisórios; ambos os números são ajustáveis.
 
 1. Gere cinco keyframes com o mesmo núcleo, fundo, seed/referência e enquadramento. Use um modelo de imagem/vídeo que aceite referências e quadros inicial/final. Não use personagens, armaduras, logotipos ou elementos da referência.
 2. Use este prompt base, alterando somente o estágio:
