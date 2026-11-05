@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { frameForProgress, progressForScroll, chapterForProgress } from '../core/config';
 import { corePose } from '../core/renderer';
 import { parseManifest } from '../core/frames';
+// Network mocks must own frame requests rather than the installed PWA worker.
+test.use({serviceWorkers:'block'});
 test.beforeEach(async({page})=>{
  await page.addInitScript(()=>sessionStorage.setItem('triunexa-feedback-prompt','1'));
  await page.route('**/rest/v1/truinexa_public_leads*',r=>r.fulfill({json:[{
@@ -56,11 +58,13 @@ test('reduced-motion keeps canvas static and mobile has no horizontal scroll',as
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('broken optional WebP frames fall back to original procedural geometry',async({page})=>{
- await page.route('**/core-frames/manifest.json',r=>r.fulfill({json:{enabled:true,count:180,pattern:'frame_{index}.webp',padding:4,start:1,fit:'cover'}}));
+ let manifestRequests=0;
+ await page.route('**/core-frames/manifest.json',r=>{manifestRequests++;return r.fulfill({json:{enabled:true,count:180,pattern:'frame_{index}.webp',padding:4,start:1,fit:'cover'}});});
  let requests=0;
  await page.route('**/core-frames/*.webp',r=>{requests++;return r.fulfill({status:404,body:'not found'});});
  await page.goto('/');
  await expect(page.locator('.public-platform')).toHaveAttribute('data-core-renderer','procedural');
+ await expect.poll(()=>manifestRequests).toBeGreaterThan(0);
  await expect.poll(()=>requests).toBeGreaterThan(0);
  expect(requests).toBeLessThanOrEqual(5);
  await expect(page.getByRole('link',{name:'Explorar empresas'})).toBeVisible();
