@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 test('landing pública preserva identidade Onda e catálogo real', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.public-platform')).toHaveClass(/onda-view/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Olá.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Boas conexões. Novas possibilidades.' })).toBeVisible();
   await expect(page.locator('.onda-image-aperture img')).toHaveAttribute('src', /onda-orbit\.jpg$/);
   await expect(page.getByRole('heading', { name: 'Empresa Cinema' })).toBeVisible();
   await expect(page.locator('.core-canvas')).toHaveCount(0);
@@ -54,6 +54,8 @@ test('menu compacto, catálogo e ADM continuam acessíveis no celular', async ({
 test('movimento reduzido desativa rotação da imagem e do anel', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await expect(page.locator('.onda-orbit')).toHaveCSS('animation-name', 'none');
+  for (const orbit of await page.locator('.onda-orbit').all()) {
+    await expect(orbit).toHaveCSS('animation-name', 'none');
+  }
   await expect(page.locator('.onda-image-aperture img')).toHaveCSS('animation-name', 'none');
 });
