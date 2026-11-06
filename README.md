@@ -35,3 +35,12 @@ npx playwright test tests/public-platform.spec.ts
 Configuração pública em `env.example`. A chave publishable/anon é própria para o navegador e depende de RLS. Nunca colocar chave service_role no frontend. A migração `supabase/migrations/20261105160000_public_platform.sql` foi aplicada ao projeto existente; não reaplicar manualmente. O projeto studioblack7 não é utilizado.
 
 O código do CRM anterior permanece preservado para referência e reversão; a entrada publicada usa `PublicPlatform.tsx`. Os testes anteriores de Site Studio/WhatsApp são do CRM legado, não da nova interface pública.
+
+## Identidade visual pública
+
+A página pública usa a composição editorial do [Onda / 8B](https://github.com/8bsite/design-studio-website-template) como referência de design: tipografia Gabarito/Onest, fundo escuro, destaque violeta, imagem circular e movimento opcional. A implementação React foi adaptada ao catálogo real da TRIUNEXA; nenhuma empresa, projeto, equipe ou resultado comercial fictício foi adicionado.
+
+- Código de referência Onda: MIT License. Licença e créditos originais no repositório acima.
+- Imagem do círculo `public/onda-orbit.jpg`: fotografia abstrata de [Creatvise / Unsplash](https://unsplash.com/photos/Fx7E3RXCSUM), usada sob a [Unsplash License](https://unsplash.com/license), não coberta pela MIT.
+- Fontes Gabarito e Onest: SIL Open Font License, via Google Fonts.
+- Catálogo, filtros, painel administrativo, autenticação, métricas e feedback mantêm sua integração existente com Supabase. A mudança é visual e da organização da página pública.

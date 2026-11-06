@@ -1,4 +1,4 @@
-const CACHE_NAME = 'truinexa-pwa-v21-emerald-blueprint';
+const CACHE_NAME = 'truinexa-pwa-v22-onda-landing';
 const APP_ROOT = self.registration.scope;
 
 const shellAssets = [
