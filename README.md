@@ -44,3 +44,22 @@ A página pública usa a composição editorial do [Onda / 8B](https://github.co
 - Imagem do círculo `public/onda-orbit.jpg`: fotografia abstrata de [Creatvise / Unsplash](https://unsplash.com/photos/Fx7E3RXCSUM), usada sob a [Unsplash License](https://unsplash.com/license), não coberta pela MIT.
 - Fontes Gabarito e Onest: SIL Open Font License, via Google Fonts.
 - Catálogo, filtros, painel administrativo, autenticação, métricas e feedback mantêm sua integração existente com Supabase. A mudança é visual e da organização da página pública.
+
+### Experiência interativa
+
+A apresentação pública agora estende essa identidade com uma escultura orbital WebGL própria, iluminação e camadas que respondem ao ponteiro, além de feedback sutil nos cards. `OndaExperience.tsx` concentra o renderizador e os ciclos de vida; `onda-experience.css` contém os ajustes visuais sem afetar o painel administrativo.
+
+- O botão de pausa na navegação interrompe os efeitos e guarda a preferência no navegador. A preferência de movimento reduzido do sistema tem prioridade.
+- O desenho pausa fora da tela ou com a aba oculta. A densidade de pixels é limitada a 1,5 no desktop e 1 em dispositivos de toque; o limite de quadros é 40/24, respectivamente.
+- Falha ou ausência de WebGL mantém a fotografia original como alternativa. Busca, navegação, fichas e dados não dependem do efeito.
+- Nenhuma dependência de execução foi adicionada e nenhuma migração de banco foi feita.
+
+Verificação da página pública:
+
+```bash
+npm run lint
+npm run build
+npx playwright test tests/onda-experience.spec.ts tests/onda-landing.spec.ts tests/public-platform.spec.ts tests/onda-scroll.spec.ts
+```
+
+Na sequência orbital, o fundo se move autonomamente e a rolagem nativa controla a câmera e a rotação da cena. O desktop mantém a abertura por um trecho curto; celulares usam a versão sem fixação. Movimento reduzido remove esse trecho, e a pausa continua disponível. `OndaScroll.ts` mede a estrutura somente quando seu tamanho muda e agrupa as atualizações em um quadro por evento de rolagem.

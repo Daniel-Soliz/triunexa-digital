@@ -1,4 +1,4 @@
-const CACHE_NAME = 'truinexa-pwa-v22-onda-landing';
+const CACHE_NAME = 'truinexa-pwa-v23-orbital-scroll';
 const APP_ROOT = self.registration.scope;
 
 const shellAssets = [
