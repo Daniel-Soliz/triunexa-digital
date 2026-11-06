@@ -65,6 +65,7 @@ export default function PublicPlatform() {
  }
  return <div ref={experience.root} data-motion={experience.mode} className={"public-platform"+(admin?" admin-view":" onda-view")}>
  {!admin&&<a className="onda-skip-link" href="#conteudo">Pular para o conteúdo</a>}
+ {!admin&&<div className="onda-page-progress" aria-hidden="true"/>}
  {admin?<header className="site-header"><a href="#" className="brand"><span className="brand-symbol">t<span>.</span></span><span>triunexa<span className="brand-sub">DIGITAL / COMUNIDADE</span></span></a><nav><a href="#" className="nav-catalog">Catálogo público</a></nav></header>:<OndaHeader menuOpen={menuOpen} onToggleMenu={()=>setMenuOpen(open=>!open)} onCloseMenu={()=>setMenuOpen(false)} paused={experience.paused} reduced={experience.reduced} onToggleMotion={experience.toggleMotion}/>}
  {admin?<Suspense fallback={<p className="admin-shell">Carregando painel…</p>}><AdminPanel/></Suspense>:<main id="conteudo" tabIndex={-1}>
  <OndaHero count={leads.length} sectors={new Set(leads.map(l=>canonicalSector(l.segment))).size} onSearch={searchFromHero} animated={experience.animated}/>

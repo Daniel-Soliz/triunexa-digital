@@ -59,8 +59,8 @@ export function OndaHero({ count, sectors, onSearch, animated }: HeroProps) {
   }
 
   return (
-    <section className="onda-hero" id="inicio" aria-labelledby="onda-hero-title">
-      <div className="onda-hero-atmosphere" aria-hidden="true"><div className="onda-nebula"/><div className="onda-coordinate-grid"/><div className="onda-starfield"/></div>
+    <div className="onda-hero-journey" id="inicio"><section className="onda-hero" aria-labelledby="onda-hero-title">
+      <div className="onda-hero-atmosphere" aria-hidden="true"><div className="onda-nebula"><div className="onda-nebula-flow"/></div><div className="onda-coordinate-grid"/><div className="onda-starfield"/></div>
       <div className="onda-hero-copy">
         <h1 id="onda-hero-title" className="onda-hero-title">Boas conexões.<br/><span>Novas possibilidades.</span></h1>
         <p className="onda-hero-description">Descubra empresas, encontre o contato certo e transforme uma busca em uma nova oportunidade.</p>
@@ -79,13 +79,12 @@ export function OndaHero({ count, sectors, onSearch, animated }: HeroProps) {
         <OndaOrb animated={animated}/>
         <div className="onda-floating-note onda-note-discover"><span className="onda-note-icon"><Compass size={19}/></span><span>Encontre seu próximo contato<strong>Uma conexão muda tudo.</strong></span></div>
         <div className="onda-floating-note onda-note-open"><span className="onda-online-dot"/><span>Uma comunidade aberta<Globe2 size={15}/></span></div>
-        <span className="onda-stage-coordinate">TRIUNEXA / CONEXÕES EM MOVIMENTO</span>
       </div>
       <div className="onda-hero-bottom">
         <div className="onda-hero-counter"><span><strong>{count}</strong> empresas para descobrir</span><span><strong>{sectors}</strong> áreas de atuação</span><span>100% gratuito</span></div>
         <a href="#apresentacao" className="onda-scroll-note">Continue explorando<ArrowDown size={17} aria-hidden="true"/></a>
       </div>
-    </section>
+    </section></div>
   );
 }
 

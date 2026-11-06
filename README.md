@@ -59,5 +59,7 @@ Verificação da página pública:
 ```bash
 npm run lint
 npm run build
-npx playwright test tests/onda-experience.spec.ts tests/onda-landing.spec.ts tests/public-platform.spec.ts
+npx playwright test tests/onda-experience.spec.ts tests/onda-landing.spec.ts tests/public-platform.spec.ts tests/onda-scroll.spec.ts
 ```
+
+Na sequência orbital, o fundo se move autonomamente e a rolagem nativa controla a câmera e a rotação da cena. O desktop mantém a abertura por um trecho curto; celulares usam a versão sem fixação. Movimento reduzido remove esse trecho, e a pausa continua disponível. `OndaScroll.ts` mede a estrutura somente quando seu tamanho muda e agrupa as atualizações em um quadro por evento de rolagem.

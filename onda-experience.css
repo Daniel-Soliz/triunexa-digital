@@ -242,3 +242,30 @@
   .onda-view .creator > .secondary { margin-top: 28px; }
   .onda-view .site-footer { align-items: flex-start; gap: 22px; flex-direction: column; font-size: 10px; }
 }
+
+/* One scroll chapter: the open network rotates toward the visitor, then hands
+   the page back to the real catalogue. Native anchors and touch scrolling remain native. */
+.onda-view .onda-hero-journey { position: relative; background: #0d0c11; }
+.onda-view .onda-page-progress { position: fixed; z-index: 45; top: 0; left: 0; width: 100%; height: 3px; pointer-events: none; background: linear-gradient(90deg, #9872f5, #c5c8ff, #a9ddea); transform: scaleX(var(--page-progress, 0)); transform-origin: left; }
+.onda-view .onda-nebula { background: none; }
+.onda-view .onda-nebula-flow { position: absolute; inset: -10%; background: radial-gradient(ellipse at 72% 40%, #7343b85e 0%, transparent 44%), radial-gradient(ellipse at 85% 73%, #28577c3d 0%, transparent 36%), radial-gradient(ellipse at 12% 8%, #53237d35 0%, transparent 43%); animation: onda-nebula-drift 17s ease-in-out infinite alternate; }
+.onda-view .onda-hero-stage { transform: perspective(1200px) translate3d(calc(var(--pointer-x) * 17px + var(--hero-progress, 0) * 70px), calc(var(--pointer-y) * 12px - var(--hero-progress, 0) * 55px), 0) rotateY(calc(var(--pointer-x) * -5deg + var(--hero-progress, 0) * -18deg)) rotateX(calc(var(--pointer-y) * 4deg)) rotateZ(calc(var(--hero-progress, 0) * 18deg)) scale(calc(1 + var(--hero-progress, 0) * .18)); transition: transform .18s linear; }
+.onda-view .onda-hero-copy { transform: translate3d(calc(var(--hero-progress, 0) * -55px), calc(var(--hero-progress, 0) * -36px), 0); opacity: calc(1 - var(--hero-progress, 0) * .32); transition: transform .18s linear, opacity .18s linear; }
+.onda-view .onda-coordinate-grid { transform: perspective(420px) rotateX(58deg) translateY(calc(var(--hero-progress, 0) * -110px)); }
+.onda-view .onda-intro-symbol { transform: rotate(calc(-30deg + var(--section-progress, .5) * 90deg)); transition: transform .2s linear; }
+.onda-view .onda-closing-orbits { transform: perspective(700px) rotateY(calc(-45deg + var(--section-progress, .5) * 55deg)) rotateX(20deg) rotateZ(calc(var(--section-progress, .5) * 70deg)); transition: transform .2s linear; }
+@keyframes onda-nebula-drift { from { transform: translate3d(-3%, -2%, 0) rotate(-7deg) scale(.98); opacity: .65; } to { transform: translate3d(5%, 4%, 0) rotate(7deg) scale(1.1); opacity: 1; } }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .onda-view[data-motion="full"] .onda-hero-journey { height: calc(max(820px, 100svh) + min(70svh, 700px)); }
+  .onda-view[data-motion="full"] .onda-hero-journey .onda-hero { position: sticky; top: 0; min-height: max(820px, 100svh); }
+}
+@media (max-width: 1023px) {
+  .onda-view .onda-hero-copy { transform: none; opacity: 1; }
+  .onda-view .onda-hero-stage { transform: translate3d(0, calc(var(--hero-progress, 0) * -28px), 0) rotateZ(calc(var(--hero-progress, 0) * 10deg)) scale(calc(1 + var(--hero-progress, 0) * .06)); }
+}
+.onda-view:not([data-motion="full"]) :is(.onda-hero-copy, .onda-intro-symbol, .onda-closing-orbits) { transform: none; opacity: 1; transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .onda-view .onda-hero-journey { height: auto; }
+  .onda-view .onda-hero-journey .onda-hero { position: relative; }
+  .onda-view .onda-nebula-flow { animation: none; }
+}

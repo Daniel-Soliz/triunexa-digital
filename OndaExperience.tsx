@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useOndaScroll } from './OndaScroll';
 
 /** Motion is decorative: navigation, content and data never depend on it. */
 export function useOndaExperience(active: boolean) {
@@ -8,6 +9,7 @@ export function useOndaExperience(active: boolean) {
   });
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const mode = reduced ? 'reduced' : paused ? 'paused' : 'full';
+  useOndaScroll(root, active && mode === 'full');
 
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
@@ -102,10 +104,11 @@ const FRAGMENT = `precision mediump float;
 uniform vec2 resolution;
 uniform vec2 pointer;
 uniform float time;
+uniform float journey;
 mat2 rotate(float a) { float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
 vec3 world(vec3 p) {
-  p.xy=rotate(-.46+pointer.x*.18)*p.xy;
-  p.yz=rotate(.53+pointer.y*.22)*p.yz;
+  p.xy=rotate(-.46+pointer.x*.18+journey*.85)*p.xy;
+  p.yz=rotate(.53+pointer.y*.22-journey*.48)*p.yz;
   p.xz=rotate(.22+sin(time*.19)*.13)*p.xz;
   return p;
 }
@@ -119,7 +122,7 @@ float shape(vec3 position) {
 }
 void main() {
   vec2 uv=(gl_FragCoord.xy*2.-resolution)/min(resolution.x,resolution.y);
-  vec3 origin=vec3(0.,0.,3.65);
+  vec3 origin=vec3(0.,0.,3.65-journey*.4);
   vec3 ray=normalize(vec3(uv,-2.6));
   float distance=0.;
   vec3 p=origin;
@@ -198,15 +201,19 @@ export function OndaOrb({ animated }: { animated: boolean }) {
     const sizeUniform = context.getUniformLocation(program, 'resolution');
     const timeUniform = context.getUniformLocation(program, 'time');
     const pointerUniform = context.getUniformLocation(program, 'pointer');
+    const journeyUniform = context.getUniformLocation(program, 'journey');
     let frame = 0, visible = false, lost = false, previous = 0, elapsed = 0, sizeDirty = true;
     let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0;
+    let journeyPosition = 0, targetJourney = 0;
     const coarse = matchMedia('(pointer: coarse)').matches;
     const draw = () => {
       pointerX += (targetX - pointerX) * .065;
       pointerY += (targetY - pointerY) * .065;
+      journeyPosition += (targetJourney - journeyPosition) * .085;
       context.uniform2f(sizeUniform, surface.width, surface.height);
       context.uniform2f(pointerUniform, pointerX, pointerY);
       context.uniform1f(timeUniform, elapsed);
+      context.uniform1f(journeyUniform, journeyPosition);
       context.drawArrays(context.TRIANGLES, 0, 6);
     };
     const render = (now: number) => {
@@ -255,6 +262,9 @@ export function OndaOrb({ animated }: { animated: boolean }) {
     const resizeObserver = new ResizeObserver(resize);
     observation.observe(host); resizeObserver.observe(host);
     const hero = host.closest('.onda-hero');
+    const experience = host.closest('.public-platform');
+    const onJourney = (event: Event) => { targetJourney = Math.max(0, Math.min(1, Number((event as CustomEvent<number>).detail) || 0)); };
+    experience?.addEventListener('onda-journey', onJourney);
     hero?.addEventListener('pointermove', pointer as EventListener, { passive: true });
     hero?.addEventListener('pointerleave', leave);
     surface.addEventListener('webglcontextlost', onLost);
@@ -264,6 +274,7 @@ export function OndaOrb({ animated }: { animated: boolean }) {
       stop(); scheduling.current = null; observation.disconnect(); resizeObserver.disconnect();
       hero?.removeEventListener('pointermove', pointer as EventListener);
       hero?.removeEventListener('pointerleave', leave);
+      experience?.removeEventListener('onda-journey', onJourney);
       surface.removeEventListener('webglcontextlost', onLost);
       document.removeEventListener('visibilitychange', onVisibility);
       context.deleteBuffer(buffer); context.deleteProgram(program);
