@@ -43,7 +43,7 @@ test('movimento reduzido vence a preferência de animação e funciona a 360px',
   await expect(page).toHaveURL(/#como-funciona$/);
 });
 
-test('sem WebGL a imagem alternativa mantém a experiência e a navegação', async ({ page }) => {
+test('sem WebGL a esfera alternativa gira com a rolagem, anima sozinha e permite pausar', async ({ page }) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...args: unknown[]) {
@@ -53,8 +53,17 @@ test('sem WebGL a imagem alternativa mantém a experiência e a navegação', as
   });
   await page.goto('/');
   await expect(page.locator('.onda-orb')).toHaveAttribute('data-renderer', 'fallback');
-  await expect(page.locator('.onda-image-aperture img')).toBeVisible();
-  await expect(page.locator('.onda-image-aperture img')).toHaveCSS('animation-name', 'none');
+  const image = page.locator('.onda-image-aperture img');
+  const aperture = page.locator('.onda-image-aperture');
+  await expect(image).toBeVisible();
+  await expect(image).toHaveCSS('animation-name', 'onda-rotate');
+  const before = await aperture.evaluate(el => getComputedStyle(el).transform);
+  await page.evaluate(() => scrollTo(0, 350));
+  await expect.poll(() => page.locator('.public-platform').evaluate(el => Number(el.style.getPropertyValue('--hero-progress')))).toBeGreaterThan(.2);
+  await expect.poll(() => aperture.evaluate(el => getComputedStyle(el).transform)).not.toBe(before);
+  await page.getByRole('button', { name: 'Pausar animações' }).click();
+  await expect(image).toHaveCSS('animation-name', 'none');
+  await page.getByRole('button', { name: 'Retomar animações' }).click();
   await page.getByRole('link', { name: 'Explorar empresas', exact: true }).click();
   await expect(page).toHaveURL(/#empresas$/);
   await page.getByRole('button', { name: /Ver informações de Conexões/ }).click();
