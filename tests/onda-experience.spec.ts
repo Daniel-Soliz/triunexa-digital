@@ -27,6 +27,19 @@ test('a cena responde ao mouse e pode ser pausada sem bloquear a busca', async (
   await expect(root).toHaveAttribute('data-motion', 'full');
 });
 
+test('arrastar o dedo na arte move a cena 3D sem bloquear a rolagem', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const hero = page.locator('.onda-hero');
+  const root = page.locator('.public-platform');
+  await hero.dispatchEvent('pointerdown', { pointerType: 'touch', pointerId: 12, clientX: 100, clientY: 620 });
+  await hero.dispatchEvent('pointermove', { pointerType: 'touch', pointerId: 12, clientX: 300, clientY: 710 });
+  await expect.poll(() => root.evaluate(el => Number(el.style.getPropertyValue('--touch-x')))).toBeGreaterThan(.2);
+  await hero.dispatchEvent('pointerup', { pointerType: 'touch', pointerId: 12 });
+  await expect.poll(() => root.evaluate(el => Number(el.style.getPropertyValue('--touch-x')))).toBe(0);
+  await expect(hero).toHaveCSS('touch-action', 'pan-y');
+});
+
 test('movimento reduzido vence a preferência de animação e funciona a 360px', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
