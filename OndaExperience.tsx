@@ -93,6 +93,47 @@ export function useOndaExperience(active: boolean) {
     };
   }, [active, mode]);
 
+  useEffect(() => {
+    const element = root.current;
+    const hero = element?.querySelector<HTMLElement>('.onda-hero');
+    if (!active || mode !== 'full' || !element || !hero) return;
+    let touching = false;
+    let frame = 0;
+    let x = 0, y = 0;
+    const paint = () => {
+      frame = 0;
+      element.style.setProperty('--touch-x', x.toFixed(3));
+      element.style.setProperty('--touch-y', y.toFixed(3));
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(paint); };
+    const down = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || document.querySelector('dialog[open]')) return;
+      touching = true;
+      move(event);
+    };
+    const move = (event: PointerEvent) => {
+      if (!touching || event.pointerType !== 'touch') return;
+      const rect = hero.getBoundingClientRect();
+      x = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - .5) * 2));
+      y = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - .5) * 2));
+      schedule();
+    };
+    const end = () => { touching = false; x = 0; y = 0; schedule(); };
+    hero.addEventListener('pointerdown', down);
+    hero.addEventListener('pointermove', move, { passive: true });
+    hero.addEventListener('pointerup', end);
+    hero.addEventListener('pointercancel', end);
+    return () => {
+      cancelAnimationFrame(frame);
+      hero.removeEventListener('pointerdown', down);
+      hero.removeEventListener('pointermove', move);
+      hero.removeEventListener('pointerup', end);
+      hero.removeEventListener('pointercancel', end);
+      element.style.removeProperty('--touch-x');
+      element.style.removeProperty('--touch-y');
+    };
+  }, [active, mode]);
+
   return { root, paused, reduced, mode, animated: active && mode === 'full', toggleMotion: () => setPaused(value => !value) };
 }
 
@@ -241,7 +282,7 @@ export function OndaOrb({ animated }: { animated: boolean }) {
       context.viewport(0, 0, surface.width, surface.height); draw();
     };
     const pointer = (event: PointerEvent) => {
-      if (!animation.current || event.pointerType === 'touch' || document.querySelector('dialog[open]')) return;
+      if (!animation.current || document.querySelector('dialog[open]')) return;
       targetX = (event.clientX / innerWidth - .5) * 2;
       targetY = (event.clientY / innerHeight - .5) * 2;
     };
