@@ -278,3 +278,53 @@
   .onda-view .onda-hero-journey .onda-hero { position: relative; }
   .onda-view .onda-nebula-flow { animation: none; }
 }
+
+/* Futuristic depth: the same scene responds to hover and direct touch. */
+.onda-view .onda-hero { touch-action: pan-y; perspective: 1400px; }
+.onda-view .onda-hero-atmosphere::after {
+  content: ''; position: absolute; inset: -15%; pointer-events: none;
+  background: radial-gradient(ellipse 34% 37% at 73% 42%, #bd81ff27, transparent 75%),
+              radial-gradient(ellipse 28% 33% at 25% 80%, #42d4ff14, transparent 78%);
+  mix-blend-mode: screen;
+  transform: translate3d(calc((var(--pointer-x) + var(--touch-x, 0)) * -35px), calc((var(--pointer-y) + var(--touch-y, 0)) * -26px), 0);
+  transition: transform .45s cubic-bezier(.2,.8,.2,1);
+  animation: onda-light-sweep 12s ease-in-out infinite alternate;
+}
+.onda-view .onda-starfield {
+  background-size: 100% 100%;
+  filter: drop-shadow(0 0 7px #ab8aff85);
+  transform: translate3d(calc((var(--pointer-x) + var(--touch-x, 0)) * 18px), calc((var(--pointer-y) + var(--touch-y, 0)) * 16px), 0);
+}
+.onda-view .onda-coordinate-grid {
+  background-image: linear-gradient(#ad8ced22 1px, transparent 1px), linear-gradient(90deg, #ad8ced22 1px, transparent 1px);
+  transform: perspective(420px) rotateX(calc(58deg + var(--touch-y, 0) * 4deg)) rotateZ(calc(var(--touch-x, 0) * 3deg)) translateY(calc(var(--hero-progress, 0) * -110px));
+  transition: transform .35s ease-out;
+}
+.onda-view .onda-hero-stage {
+  transform: perspective(1200px)
+    translate3d(calc((var(--pointer-x) + var(--touch-x, 0)) * 36px + var(--hero-progress, 0) * 70px), calc((var(--pointer-y) + var(--touch-y, 0)) * 28px - var(--hero-progress, 0) * 55px), 0)
+    rotateY(calc((var(--pointer-x) + var(--touch-x, 0)) * -13deg + var(--hero-progress, 0) * -30deg))
+    rotateX(calc((var(--pointer-y) + var(--touch-y, 0)) * 10deg))
+    rotateZ(calc(var(--hero-progress, 0) * 25deg))
+    scale(calc(1 + var(--hero-progress, 0) * .16));
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  transform-style: preserve-3d;
+}
+.onda-view .onda-stage-glow { filter: blur(22px); }
+.onda-view .onda-orbit { box-shadow: inset 0 0 28px #ab71ff0b, 0 0 22px #a77bff0e; }
+.onda-view .onda-orbit-secondary { box-shadow: 0 0 36px #50cfff0b; }
+.onda-view .onda-floating-note { backdrop-filter: blur(12px); }
+@keyframes onda-light-sweep { from { opacity: .48; filter: hue-rotate(0deg); } to { opacity: 1; filter: hue-rotate(24deg); } }
+@media (max-width: 1023px) {
+  .onda-view .onda-hero-stage {
+    transform: perspective(900px) translate3d(calc(var(--touch-x, 0) * 20px), calc(var(--touch-y, 0) * 16px - var(--hero-progress, 0) * 28px), 0)
+      rotateY(calc(var(--touch-x, 0) * -12deg)) rotateX(calc(var(--touch-y, 0) * 8deg))
+      rotateZ(calc(var(--hero-progress, 0) * 10deg)) scale(calc(1 + var(--hero-progress, 0) * .06));
+  }
+}
+.onda-view:not([data-motion="full"]) .onda-hero-atmosphere::after { animation: none; transform: none; }
+.onda-view:not([data-motion="full"]) .onda-hero-stage { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .onda-view .onda-hero-atmosphere::after { animation: none; transform: none; }
+  .onda-view .onda-hero-stage { transform: none; transition: none; }
+}
