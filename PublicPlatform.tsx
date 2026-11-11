@@ -15,19 +15,27 @@ function SocialLinks() {return <div className="social-links"><a href="https://ww
 function FeedbackDialog({onClose}:{onClose:()=>void}) {
  const ref=useRef<HTMLDialogElement>(null), [message,setMessage]=useState(''), [rating,setRating]=useState(5), [busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[sent,setSent]=useState(false);
  useEffect(()=>{ref.current?.showModal();return ()=>ref.current?.close();},[]);
+ useEffect(()=>{if(!sent)return;const timer=setTimeout(onClose,4000);return()=>clearTimeout(timer);},[sent,onClose]);
  async function submit(e:FormEvent) {
   e.preventDefault();setBusy(true);setNotice('');
   try {
    await heartbeat();
    const {error}=await supabase.rpc('truinexa_submit_feedback',{p_session:visitorIds().session,p_message:message.trim(),p_rating:rating});
    if(error) {if(error.code==='23505') setNotice('Você já enviou um feedback nesta visita. Obrigado!');else throw error;}
-   else {setSent(true);setNotice('Obrigado por ajudar a plataforma a evoluir!');}
+   else {
+    setSent(true);
+    setNotice('Feedback registrado! Obrigado por ajudar a TRIUNEXA a evoluir.');
+    // O registro no banco nao depende do servidor de notificacoes.
+    void supabase.functions.invoke('truinexa-feedback-notify', {
+      body:{session_id:visitorIds().session}
+    }).catch(()=>{ /* O feedback permanece disponivel no ADM. */ });
+   }
   }catch{setNotice('Não foi possível enviar. Sua mensagem foi mantida; tente novamente.');}finally{setBusy(false);}
  }
  return <dialog ref={ref} className="feedback-dialog" aria-labelledby="feedback-title" onCancel={onClose} onClick={e=>{if(e.target===ref.current) onClose();}}>
-  <button className="dialog-close" aria-label="Fechar feedback" onClick={onClose}>×</button><span className="eyebrow">FEITA PARA A COMUNIDADE</span><h2 id="feedback-title">Sua opinião faz a diferença.</h2><p>O que podemos melhorar? Deixe uma sugestão para ajudar Daniel a construir uma plataforma cada vez melhor.</p>
+  <button className="dialog-close" aria-label="Fechar feedback" onClick={onClose}>×</button><span className="eyebrow">SUA EXPERIÊNCIA IMPORTA</span><h2 id="feedback-title">Como está sendo sua experiência?</h2><p>Você está gostando da TRIUNEXA? Conte o que funciona bem ou o que podemos melhorar. A participação é opcional.</p>
   {notice&&<p role="status" className="notice">{notice}</p>}
-  {!sent?<form onSubmit={submit}><label>Como foi sua experiência?<select value={rating} onChange={e=>setRating(Number(e.target.value))}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{n} {n===1?'estrela':'estrelas'}</option>)}</select></label><label>Sua sugestão<textarea value={message} onChange={e=>setMessage(e.target.value)} minLength={10} maxLength={2000} required rows={4} placeholder="Conte o que gostou ou o que sentiu falta…" /></label><small>Sem cadastro. A mensagem será lida somente pelo administrador. Evite incluir dados pessoais.</small><div className="dialog-actions"><button className="text-button" type="button" onClick={onClose}>Agora não</button><button className="primary" disabled={busy || message.trim().length<10}>{busy?'Enviando…':'Enviar feedback'}</button></div></form>:<button className="primary" onClick={onClose}>Voltar à plataforma</button>}
+  {!sent?<form onSubmit={submit}><label>Como foi sua experiência?<select value={rating} onChange={e=>setRating(Number(e.target.value))}>{[[5,'Gostei muito'],[4,'Gostei'],[3,'Regular'],[2,'Precisa melhorar'],[1,'Não gostei']].map(([n,label])=><option key={n} value={n}>{n} estrelas — {label}</option>)}</select></label><label>Comentário ou sugestão<textarea value={message} onChange={e=>setMessage(e.target.value)} minLength={10} maxLength={2000} required rows={4} placeholder="O que você gostou? O que podemos melhorar na plataforma?" /></label><small>Sem cadastro. A mensagem será lida somente pelo administrador. Evite incluir dados pessoais.</small><div className="dialog-actions"><button className="text-button" type="button" onClick={onClose}>Agora não</button><button className="primary" disabled={busy || message.trim().length<10}>{busy?'Enviando…':'Enviar feedback'}</button></div></form>:<button className="primary" onClick={onClose}>Continuar navegando</button>}
  </dialog>;
 }
 function LeadCard({lead,onSelect,busy}:{lead:PublicLead;onSelect:()=>void;busy:boolean}) {
@@ -46,6 +54,7 @@ export default function PublicPlatform() {
  const [selectedCompany,setSelectedCompany]=useState<PublicLead|null>(null);
  const [selectingId,setSelectingId]=useState(''),[selectionError,setSelectionError]=useState('');
  const [menuOpen,setMenuOpen]=useState(false);
+ const fallbackFeedbackSeconds=useRef(0);
  const experience = useOndaExperience(!admin);
  const [query,setQuery]=useState(''),[segment,setSegment]=useState(''),[city,setCity]=useState(''),[page,setPage]=useState(1),[feedback,setFeedback]=useState(false);
  async function load() {setLoading(true);setError('');try{setLeads(rotateDaily(await loadPublicLeads()));}catch{setError('Não foi possível carregar as empresas. Confira sua conexão e tente novamente.');}finally{setLoading(false);}}
@@ -68,10 +77,29 @@ export default function PublicPlatform() {
   if(admin)return;
   const beat=()=>{if(document.visibilityState==='visible') void heartbeat().catch(()=>{});};
   beat();const timer=setInterval(beat,30000);document.addEventListener('visibilitychange',beat);
-  let seen=false;try{seen=sessionStorage.getItem('triunexa-feedback-prompt')==='1';}catch{}
-  const prompt=seen?undefined:setTimeout(()=>{setFeedback(true);try{sessionStorage.setItem('triunexa-feedback-prompt','1');}catch{}},20000);
-  return ()=>{clearInterval(timer);clearTimeout(prompt);document.removeEventListener('visibilitychange',beat);};
- },[admin]);
+  // Contabiliza um minuto de uso visivel, inclusive se a pagina recarregar.
+  // Nunca interrompe a ficha de uma empresa nem aparece duas vezes na visita.
+  const promptTimer=setInterval(()=>{
+   if(document.visibilityState!=='visible')return;
+   try {
+    if(sessionStorage.getItem('triunexa-feedback-prompt')==='1')return;
+    const elapsed=Math.max(0,Number(sessionStorage.getItem('triunexa-feedback-active-ms')||'0'))+1000;
+    sessionStorage.setItem('triunexa-feedback-active-ms',String(elapsed));
+    if(elapsed>=60000 && !selectedCompany && !feedback){
+     sessionStorage.setItem('triunexa-feedback-prompt','1');
+     setFeedback(true);
+    }
+   } catch {
+    // Se o armazenamento for bloqueado, ainda mostra o convite uma vez por sessao da pagina.
+    fallbackFeedbackSeconds.current+=1;
+    if(fallbackFeedbackSeconds.current>=60 && !selectedCompany && !feedback){
+     fallbackFeedbackSeconds.current=-1000000;
+     setFeedback(true);
+    }
+   }
+  },1000);
+  return ()=>{clearInterval(timer);clearInterval(promptTimer);document.removeEventListener('visibilitychange',beat);};
+ },[admin,selectedCompany,feedback]);
  useEffect(()=>setPage(1),[query,segment,city]);
  const filtered=leads.filter(l=>(!segment||canonicalSector(l.segment)===segment)&&(!city||l.city===city)&&normalize([l.company,l.segment,l.city,l.neighborhood].join(' ')).includes(normalize(query)));
  const segments=[...new Set([...BUSINESS_SECTORS,...leads.map(l=>canonicalSector(l.segment))])].sort(),cities=[...new Set(leads.map(l=>l.city).filter(Boolean))].sort();
@@ -95,6 +123,10 @@ export default function PublicPlatform() {
  <OndaHowItWorks/>
  <OndaClosing/>
  <section className="creator" id="criador"><div className="creator-avatar">DS<span>↗</span></div><div className="creator-copy"><h2>Desenvolvido por Daniel Soliz.</h2><p>Tecnologia para aproximar pessoas e oportunidades. Acompanhe os próximos projetos e ajude esta comunidade a crescer.</p><SocialLinks/></div><button className="secondary" onClick={()=>setFeedback(true)}><MessageCircle size={16}/>Deixar feedback</button></section></main>}
+ {!admin&&<a className="triunexa-whatsapp-float" href={`https://wa.me/5511932240546?text=${encodeURIComponent('Olá, Daniel! Conheci a TRIUNEXA DIGITAL e gostaria de conversar sobre criação de sites ou tirar uma dúvida.')}`} target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp com Daniel sobre criação de sites e serviços digitais">
+  <span className="triunexa-whatsapp-copy"><strong>Precisa de um site?</strong><small>Fale com a DS Digital</small></span>
+  <span className="triunexa-whatsapp-icon"><MessageCircle size={27} strokeWidth={2.2}/></span>
+ </a>}
  <footer className="site-footer"><span>© {new Date().getFullYear()} TRIUNEXA DIGITAL <span className="footer-divider">/</span> Desenvolvido por Daniel Soliz</span><a href={admin?'#':'#adm'}>{admin?'Catálogo público':'Acesso ADM'}<ArrowUpRight size={13}/></a></footer>
  {!admin&&selectedCompany&&<CompanyDialog lead={selectedCompany} onClose={()=>setSelectedCompany(null)}/>}
  {!admin&&!selectedCompany&&feedback&&<FeedbackDialog onClose={()=>{setFeedback(false);try{sessionStorage.setItem('triunexa-feedback-prompt','1');}catch{}}}/>}
