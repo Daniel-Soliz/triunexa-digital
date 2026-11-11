@@ -4,7 +4,13 @@ test.use({ serviceWorkers: 'block' });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('triunexa-feedback-prompt', '1'));
-  await page.route('**/rest/v1/truinexa_public_leads*', route => route.fulfill({ json: [{
+  await page.route('**/rest/v1/rpc/truinexa_public_feed', route => route.fulfill({ json: [{
+    id: '1', company: 'Empresa Cinema', segment: 'Estética', city: 'São Paulo', state: 'SP',
+    neighborhood: 'Centro', phone: '11999999999', whatsapp: '5511999999999',
+    website: 'https://example.com', instagram_url: '', source_url: 'https://example.com',
+    source_verified_at: '2026-11-05', company_summary: 'Empresa de teste',
+  }] }));
+  await page.route('**/rest/v1/rpc/truinexa_public_claim', route => route.fulfill({ json: [{
     id: '1', company: 'Empresa Cinema', segment: 'Estética', city: 'São Paulo', state: 'SP',
     neighborhood: 'Centro', phone: '11999999999', whatsapp: '5511999999999',
     website: 'https://example.com', instagram_url: '', source_url: 'https://example.com',
@@ -44,7 +50,7 @@ test('menu compacto, catálogo e ADM continuam acessíveis no celular', async ({
   await page.getByRole('link', { name: 'Catálogo', exact: true }).click();
   await expect(page).toHaveURL(/#empresas$/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('button', { name: 'Ver catálogo de informações' }).click();
+  await page.getByRole('button', { name: 'Reservar e ver informações' }).click();
   await expect(page.getByRole('dialog', { name: 'Empresa Cinema' })).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('link', { name: 'Acesso ADM' }).click();
