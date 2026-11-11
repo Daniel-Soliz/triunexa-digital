@@ -124,7 +124,7 @@ export default function PublicPlatform() {
  <OndaClosing/>
  <section className="creator" id="criador"><div className="creator-avatar">DS<span>↗</span></div><div className="creator-copy"><h2>Desenvolvido por Daniel Soliz.</h2><p>Tecnologia para aproximar pessoas e oportunidades. Acompanhe os próximos projetos e ajude esta comunidade a crescer.</p><SocialLinks/></div><button className="secondary" onClick={()=>setFeedback(true)}><MessageCircle size={16}/>Deixar feedback</button></section></main>}
  {!admin&&<a className="triunexa-whatsapp-float" href={`https://wa.me/5511932240546?text=${encodeURIComponent('Olá, Daniel! Conheci a TRIUNEXA DIGITAL e gostaria de conversar sobre criação de sites ou tirar uma dúvida.')}`} target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp com Daniel sobre criação de sites e serviços digitais">
-  <span className="triunexa-whatsapp-copy"><strong>Precisa de um site?</strong><small>Fale com a DS Digital</small></span>
+  <span className="triunexa-whatsapp-copy"><strong>Precisa de um site?</strong><small>WhatsApp · DS Digital</small></span>
   <span className="triunexa-whatsapp-icon"><MessageCircle size={27} strokeWidth={2.2}/></span>
  </a>}
  <footer className="site-footer"><span>© {new Date().getFullYear()} TRIUNEXA DIGITAL <span className="footer-divider">/</span> Desenvolvido por Daniel Soliz</span><a href={admin?'#':'#adm'}>{admin?'Catálogo público':'Acesso ADM'}<ArrowUpRight size={13}/></a></footer>
