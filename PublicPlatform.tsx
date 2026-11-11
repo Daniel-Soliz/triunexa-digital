@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, Search, MapPin, MessageCircle, Instagram, SlidersHorizontal, ShieldCheck } from 'lucide-react';
-import { heartbeat, loadPublicLeads, safeUrl, supabase, visitorIds, type PublicLead } from './publicApi';
+import { heartbeat, loadPublicLeads, claimPublicLead, supabase, visitorIds, type PublicLead } from './publicApi';
 import './public-platform.css';
 import './cinematic.css';
 import './onda-landing.css';
@@ -30,22 +30,39 @@ function FeedbackDialog({onClose}:{onClose:()=>void}) {
   {!sent?<form onSubmit={submit}><label>Como foi sua experiência?<select value={rating} onChange={e=>setRating(Number(e.target.value))}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{n} {n===1?'estrela':'estrelas'}</option>)}</select></label><label>Sua sugestão<textarea value={message} onChange={e=>setMessage(e.target.value)} minLength={10} maxLength={2000} required rows={4} placeholder="Conte o que gostou ou o que sentiu falta…" /></label><small>Sem cadastro. A mensagem será lida somente pelo administrador. Evite incluir dados pessoais.</small><div className="dialog-actions"><button className="text-button" type="button" onClick={onClose}>Agora não</button><button className="primary" disabled={busy || message.trim().length<10}>{busy?'Enviando…':'Enviar feedback'}</button></div></form>:<button className="primary" onClick={onClose}>Voltar à plataforma</button>}
  </dialog>;
 }
-function LeadCard({lead,onSelect}:{lead:PublicLead;onSelect:()=>void}) {
- const phone=(lead.whatsapp || '').replace(/\D/g,'');
- const whatsapp=/^\d{10,13}$/.test(phone)?`https://wa.me/${phone.startsWith('55')&&phone.length>=12?phone:`55${phone}`}`:undefined;
- return <article className="lead-card"><div className="card-top"><div className="company-monogram">{lead.company.slice(0,1)}</div><span className="segment-badge">{lead.segment || 'Empresa'}</span></div><h3><button className="company-open" onClick={onSelect} aria-label={"Ver informações de "+lead.company}>{lead.company}</button></h3><p className="location"><MapPin size={14}/>{[lead.neighborhood,lead.city,lead.state].filter(Boolean).join(' · ') || 'Localização não informada'}</p><p className="summary">{lead.company_summary || 'Conheça esta empresa e consulte os canais comerciais disponíveis.'}</p><div className="contact-links">{whatsapp&&<a className="whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/>WhatsApp<ArrowUpRight size={14}/></a>}{safeUrl(lead.website)&&<a href={safeUrl(lead.website)} target="_blank" rel="noopener noreferrer">Site<ArrowUpRight size={14}/></a>}{safeUrl(lead.instagram_url)&&<a href={safeUrl(lead.instagram_url)} target="_blank" rel="noopener noreferrer">Instagram<ArrowUpRight size={14}/></a>}{!whatsapp&&lead.phone&&<span className="phone-label">{lead.phone}</span>}</div><button className="company-details-button" onClick={onSelect}>Ver catálogo de informações<ArrowUpRight size={14}/></button><a className="source-link" href={safeUrl(lead.source_url)} target="_blank" rel="noopener noreferrer"><ShieldCheck size={13}/>Fonte pública · {new Date(lead.source_verified_at).toLocaleDateString('pt-BR')}<ArrowUpRight size={12}/></a></article>;
+function LeadCard({lead,onSelect,busy}:{lead:PublicLead;onSelect:()=>void;busy:boolean}) {
+ return <article className="lead-card">
+  <div className="card-top"><div className="company-monogram">{lead.company.slice(0,1)}</div><span className="segment-badge">{lead.segment || 'Empresa'}</span></div>
+  <h3><button className="company-open" onClick={onSelect} disabled={busy} aria-label={"Ver informações de "+lead.company}>{lead.company}</button></h3>
+  <p className="location"><MapPin size={14}/>{[lead.neighborhood,lead.city,lead.state].filter(Boolean).join(' · ') || 'Localização não informada'}</p>
+  <p className="summary">{lead.company_summary || 'Consulte os canais comerciais da empresa após reservar.'}</p>
+  <div className="contact-links"><span className="phone-label">Telefone, WhatsApp, Instagram e site na ficha reservada</span></div>
+  <button className="company-details-button" disabled={busy} onClick={onSelect}>{busy?'Reservando contato…':'Reservar e ver informações'}<ArrowUpRight size={14}/></button>
+  <span className="source-link"><ShieldCheck size={13}/>Informações obtidas em fontes públicas · {lead.source_verified_at?new Date(lead.source_verified_at).toLocaleDateString('pt-BR'):'data não informada'}</span>
+ </article>;
 }
 export default function PublicPlatform() {
  const [admin,setAdmin]=useState(location.hash==='#adm'),[leads,setLeads]=useState<PublicLead[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const [selectedCompany,setSelectedCompany]=useState<PublicLead|null>(null);
+ const [selectingId,setSelectingId]=useState(''),[selectionError,setSelectionError]=useState('');
  const [menuOpen,setMenuOpen]=useState(false);
  const experience = useOndaExperience(!admin);
  const [query,setQuery]=useState(''),[segment,setSegment]=useState(''),[city,setCity]=useState(''),[page,setPage]=useState(1),[feedback,setFeedback]=useState(false);
  async function load() {setLoading(true);setError('');try{setLeads(rotateDaily(await loadPublicLeads()));}catch{setError('Não foi possível carregar as empresas. Confira sua conexão e tente novamente.');}finally{setLoading(false);}}
+ async function selectLead(lead:PublicLead) {
+  if(selectingId)return;
+  setSelectingId(lead.id);setSelectionError('');
+  try {const reserved=await claimPublicLead(lead.id);if(reserved)setSelectedCompany(reserved);
+   else {setSelectionError('Esta empresa já foi reservada por outro visitante. O catálogo foi atualizado.');await load();}
+  } catch {setSelectionError('Não foi possível reservar a empresa. Tente novamente.');}
+  finally {setSelectingId('');}
+ }
  useEffect(()=>{
   const change=()=>setAdmin(location.hash==='#adm');window.addEventListener('hashchange',change);
   void load();const timer=setInterval(()=>void load(),120000);
-  return ()=>{window.removeEventListener('hashchange',change);clearInterval(timer);};
+  let brazilDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
+  const midnight=setInterval(()=>{const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());if(today!==brazilDay){brazilDay=today;setSelectedCompany(null);void load();}},15000);
+  return ()=>{window.removeEventListener('hashchange',change);clearInterval(timer);clearInterval(midnight);};
  },[]);
  useEffect(()=>{
   if(admin)return;
@@ -72,8 +89,9 @@ export default function PublicPlatform() {
  <OndaIntroduction/>
  <section className="catalog" id="empresas"><div className="section-heading"><div><h2>Encontre sua próxima conexão<span className="heading-dot">.</span></h2></div><span className="result-total">{loading?'Carregando catálogo…':`${leads.length} empresas disponíveis`}</span></div><div className="sector-rail" aria-label="Áreas de atuação">{BUSINESS_SECTORS.map(s=><button key={s} className={segment===s?"active":""} aria-pressed={segment===s} onClick={()=>setSegment(segment===s?"":s)}>{s}<span>{leads.filter(l=>canonicalSector(l.segment)===s).length}</span></button>)}</div><div className="filter-bar"><label className="search-field"><Search size={19}/><input aria-label="Buscar empresas" placeholder="Buscar empresa, segmento ou cidade" value={query} onChange={e=>setQuery(e.target.value)}/></label><label className="filter-field"><SlidersHorizontal size={16}/><select aria-label="Segmento" value={segment} onChange={e=>setSegment(e.target.value)}><option value="">Todos os segmentos</option>{segments.map(s=><option key={s}>{s}</option>)}</select></label><label className="filter-field"><MapPin size={16}/><select aria-label="Cidade" value={city} onChange={e=>setCity(e.target.value)}><option value="">Todas as cidades</option>{cities.map(c=><option key={c}>{c}</option>)}</select></label></div>
  <div className="results-meta"><span>{filtered.length} {filtered.length===1?'conexão encontrada':'conexões encontradas'}</span>{(query||segment||city)?<button className="clear-filters" onClick={()=>{setQuery('');setSegment('');setCity('');}}>Limpar filtros ×</button>:<span>Escolha uma empresa. Comece uma conversa.</span>}</div>
- {error?<div className="empty-state" role="alert"><p>{error}</p><button className="secondary" onClick={()=>void load()}>Tentar novamente</button></div>:loading&&leads.length===0?<div className="empty-state" role="status">Buscando novas conexões…</div>:filtered.length===0?<div className="empty-state"><h3>Nenhum resultado por aqui</h3><p>Tente outro termo ou explore todos os segmentos.</p><button className="secondary" onClick={()=>{setQuery('');setCity('');setSegment('');}}>Limpar filtros</button></div>:<><div className="leads-grid">{filtered.slice(0,page*12).map(l=><LeadCard key={l.id} lead={l} onSelect={()=>setSelectedCompany(l)}/>)}</div>{filtered.length>page*12&&<div className="load-more"><button className="secondary" onClick={()=>setPage(p=>p+1)}>Ver mais empresas</button></div>}</>}
- <p className="catalog-note">A ordem de descoberta varia diariamente; isso não altera a data da última verificação. Os contatos podem mudar. Consulte a ficha e confirme os dados na fonte.</p></section>
+ {selectionError&&<div className="empty-state" role="status">{selectionError}</div>}
+ {error?<div className="empty-state" role="alert"><p>{error}</p><button className="secondary" onClick={()=>void load()}>Tentar novamente</button></div>:loading&&leads.length===0?<div className="empty-state" role="status">Buscando novas conexões…</div>:filtered.length===0?<div className="empty-state"><h3>Nenhum resultado por aqui</h3><p>Tente outro termo ou explore todos os segmentos.</p><button className="secondary" onClick={()=>{setQuery('');setCity('');setSegment('');}}>Limpar filtros</button></div>:<><div className="leads-grid">{filtered.slice(0,page*12).map(l=><LeadCard key={l.id} lead={l} busy={selectingId===l.id} onSelect={()=>void selectLead(l)}/>)}</div>{filtered.length>page*12&&<div className="load-more"><button className="secondary" onClick={()=>setPage(p=>p+1)}>Ver mais empresas</button></div>}</>}
+ <p className="catalog-note">Até 50 empresas por setor, conforme a disponibilidade de contatos verificados. A reserva é exclusiva por navegador e a vitrine é renovada à meia-noite (horário de Brasília). Os dados comerciais podem mudar; confirme nas fontes.</p></section>
  <OndaHowItWorks/>
  <OndaClosing/>
  <section className="creator" id="criador"><div className="creator-avatar">DS<span>↗</span></div><div className="creator-copy"><h2>Desenvolvido por Daniel Soliz.</h2><p>Tecnologia para aproximar pessoas e oportunidades. Acompanhe os próximos projetos e ajude esta comunidade a crescer.</p><SocialLinks/></div><button className="secondary" onClick={()=>setFeedback(true)}><MessageCircle size={16}/>Deixar feedback</button></section></main>}
