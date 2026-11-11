@@ -4,7 +4,8 @@ test.beforeEach(async ({ page }) => {
   // Catalogue behavior must survive unavailable animation CDNs.
   page.on('pageerror', error => { throw error; });
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
-  await page.route('**/rest/v1/truinexa_public_leads*', route => route.fulfill({ json: [{id:'1',company:'Empresa de teste',segment:'Design',city:'São Paulo',state:'SP',neighborhood:'Centro',phone:'11999999999',whatsapp:'11999999999',website:'javascript:alert(1)',instagram_url:'https://instagram.com/example',source_url:'https://example.com',source_verified_at:'2026-11-05',company_summary:'Contato comercial público'}] }));
+  await page.route('**/rest/v1/rpc/truinexa_public_feed', route => route.fulfill({ json: [{id:'1',company:'Empresa de teste',segment:'Design',city:'São Paulo',state:'SP',neighborhood:'Centro',phone:'11999999999',whatsapp:'11999999999',website:'javascript:alert(1)',instagram_url:'https://instagram.com/example',source_url:'https://example.com',source_verified_at:'2026-11-05',company_summary:'Contato comercial público'}] }));
+  await page.route('**/rest/v1/rpc/truinexa_public_claim', route => route.fulfill({ json: [{id:'1',company:'Empresa de teste',segment:'Design',city:'São Paulo',state:'SP',neighborhood:'Centro',phone:'11999999999',whatsapp:'11999999999',website:'javascript:alert(1)',instagram_url:'https://instagram.com/example',source_url:'https://example.com',source_verified_at:'2026-11-05',company_summary:'Contato comercial público'}] }));
   await page.route('**/rest/v1/rpc/truinexa_public_heartbeat', route => route.fulfill({ json: null }));
   await page.route('**/rest/v1/rpc/truinexa_submit_feedback', route => route.fulfill({ json: null }));
 });
@@ -60,7 +61,7 @@ test('mobile e movimento reduzido mantêm o catálogo utilizável sem CDN',async
  await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
  await page.goto('/#empresas');
  await expect(page.getByRole('heading',{name:'Empresa de teste'})).toBeVisible();
- await page.getByRole('button',{name:'Ver catálogo de informações'}).click();
+ await page.getByRole('button',{name:'Reservar e ver informações'}).click();
  await expect(page.getByRole('dialog',{name:'Empresa de teste'})).toBeVisible();
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
  expect(overflow).toBe(false);
