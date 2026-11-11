@@ -2,8 +2,8 @@ import { supabase } from './supabaseApi';
 export { supabase };
 export interface PublicLead {
  id: string; company: string; segment: string; city: string; state: string; neighborhood: string;
- phone: string; whatsapp: string; website: string; instagram_url: string;
- source_url: string; source_verified_at: string; company_summary: string;
+ phone?: string; whatsapp?: string; website?: string; instagram_url?: string;
+ source_url?: string; source_verified_at: string; company_summary: string;
  email?: string; address?: string; contact_name?: string; contact_role?: string;
  details_sources?: {label:string;url:string}[];
 }
@@ -33,13 +33,18 @@ export async function heartbeat() {
  if(error) throw error;
 }
 export async function loadPublicLeads(): Promise<PublicLead[]> {
- const all: PublicLead[] = [];
- for(let start=0; ; start+=1000) {
-  const {data,error} = await supabase.from('truinexa_public_leads').select('*').order('company').order('id').range(start,start+999);
-  if(error) throw error;
-  all.push(...(data || []));
-  if(!data || data.length<1000) return all;
- }
+ await heartbeat();
+ const {visitor,session}=visitorIds();
+ const {data,error}=await supabase.rpc('truinexa_public_feed',{p_visitor:visitor,p_session:session});
+ if(error) throw error;
+ return (data||[]) as PublicLead[];
+}
+export async function claimPublicLead(id:string): Promise<PublicLead|null> {
+ await heartbeat();
+ const {visitor,session}=visitorIds();
+ const {data,error}=await supabase.rpc('truinexa_public_claim',{p_visitor:visitor,p_session:session,p_lead:id});
+ if(error) throw error;
+ return ((data||[])[0]||null) as PublicLead|null;
 }
 
 export const BUSINESS_SECTORS = ['Estética','Cabeleireiros','Barbearias','Advocacia','Odontologia','Academias','Pet shops','Restaurantes','Contabilidade','Oficinas'];
