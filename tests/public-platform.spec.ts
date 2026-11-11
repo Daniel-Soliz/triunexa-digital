@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/rest/v1/rpc/truinexa_public_claim', route => route.fulfill({ json: [{id:'1',company:'Empresa de teste',segment:'Design',city:'São Paulo',state:'SP',neighborhood:'Centro',phone:'11999999999',whatsapp:'11999999999',website:'javascript:alert(1)',instagram_url:'https://instagram.com/example',source_url:'https://example.com',source_verified_at:'2026-11-05',company_summary:'Contato comercial público'}] }));
   await page.route('**/rest/v1/rpc/truinexa_public_heartbeat', route => route.fulfill({ json: null }));
   await page.route('**/rest/v1/rpc/truinexa_submit_feedback', route => route.fulfill({ json: null }));
+  await page.route('**/functions/v1/truinexa-feedback-notify', route => route.fulfill({ json: { emailed: false, reason: 'email_provider_not_configured' } }));
 });
 test('abre sem login e permite buscar contatos e seguir desenvolvedor', async ({ page }) => {
   await page.goto('/');
@@ -24,9 +25,9 @@ test('feedback opcional pode ser fechado e enviado', async ({ page }) => {
   await page.getByRole('button', {name:'Agora não'}).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button', {name:'Deixar feedback',exact:true}).click();
-  await page.getByLabel('Sua sugestão').fill('Gostei da plataforma e gostaria de mais filtros.');
+  await page.getByLabel('Comentário ou sugestão').fill('Gostei da plataforma e gostaria de mais filtros.');
   await page.getByRole('button', {name:'Enviar feedback'}).click();
-  await expect(page.getByText('Obrigado por ajudar a plataforma a evoluir!')).toBeVisible();
+  await expect(page.getByText('Feedback registrado! Obrigado por ajudar a TRIUNEXA a evoluir.')).toBeVisible();
 });
 test('painel exige credenciais e não oferece cadastro público', async ({ page }) => {
   await page.goto('/#adm');
@@ -70,4 +71,25 @@ test('PWA e âncora do catálogo permanecem presentes',async({page})=>{
  await page.goto('/');
  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href',/manifest.webmanifest/);
  await expect(page.getByRole('link',{name:'Explorar empresas'})).toHaveAttribute('href','#empresas');
+});
+
+test('WhatsApp flutuante aponta para o telefone comercial de Daniel',async({page})=>{
+ await page.goto('/');
+ const contact=page.getByRole('link',{name:'Falar no WhatsApp com Daniel sobre criação de sites e serviços digitais'});
+ await expect(contact).toBeVisible();
+ await expect(contact).toHaveAttribute('href',/^https:\/\/wa\.me\/5511932240546\?text=/);
+ await expect(contact).toHaveAttribute('target','_blank');
+});
+test('mostra convite de feedback ao completar 60 segundos de uso e nao repete apos recusa',async({page})=>{
+ await page.addInitScript(()=>{
+  sessionStorage.setItem('triunexa-feedback-active-ms','59000');
+  sessionStorage.removeItem('triunexa-feedback-prompt');
+ });
+ await page.goto('/');
+ const dialog=page.getByRole('dialog',{name:'Como está sendo sua experiência?'});
+ await expect(dialog).toBeVisible({timeout:6000});
+ await expect(dialog.getByText('A participação é opcional.',{exact:false})).toBeVisible();
+ await dialog.getByRole('button',{name:'Agora não'}).click();
+ await expect(dialog).toHaveCount(0);
+ await expect(page.evaluate(()=>sessionStorage.getItem('triunexa-feedback-prompt'))).toBe('1');
 });
