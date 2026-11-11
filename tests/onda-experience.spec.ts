@@ -3,7 +3,12 @@ import { expect, test } from '@playwright/test';
 test.use({ serviceWorkers: 'block' });
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('triunexa-feedback-prompt', '1'));
-  await page.route('**/rest/v1/truinexa_public_leads*', route => route.fulfill({ json: [{
+  await page.route('**/rest/v1/rpc/truinexa_public_feed', route => route.fulfill({ json: [{
+    id: '1', company: 'Conexões & Serviços com um nome comercial bastante longo', segment: 'Design', city: 'São Paulo', state: 'SP',
+    neighborhood: 'Centro', phone: '', whatsapp: '', website: '', instagram_url: '',
+    source_url: 'https://example.com', source_verified_at: '2026-11-05', company_summary: 'Informações comerciais públicas para conectar empresas e pessoas.',
+  }] }));
+  await page.route('**/rest/v1/rpc/truinexa_public_claim', route => route.fulfill({ json: [{
     id: '1', company: 'Conexões & Serviços com um nome comercial bastante longo', segment: 'Design', city: 'São Paulo', state: 'SP',
     neighborhood: 'Centro', phone: '', whatsapp: '', website: '', instagram_url: '',
     source_url: 'https://example.com', source_verified_at: '2026-11-05', company_summary: 'Informações comerciais públicas para conectar empresas e pessoas.',
