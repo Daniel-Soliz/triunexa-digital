@@ -91,5 +91,5 @@ test('mostra convite de feedback ao completar 60 segundos de uso e nao repete ap
  await expect(dialog.getByText('A participação é opcional.',{exact:false})).toBeVisible();
  await dialog.getByRole('button',{name:'Agora não'}).click();
  await expect(dialog).toHaveCount(0);
- await expect(page.evaluate(()=>sessionStorage.getItem('triunexa-feedback-prompt'))).toBe('1');
+ expect(await page.evaluate(()=>sessionStorage.getItem('triunexa-feedback-prompt'))).toBe('1');
 });
